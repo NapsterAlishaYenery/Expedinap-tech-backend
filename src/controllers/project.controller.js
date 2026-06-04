@@ -4,10 +4,10 @@ const deleteLocalFiles = require('../utils/fileCleanup.util');
 
 exports.createProject = async (req, res) => {
     try {
-        // 1. Extraer textos (ya validados por JOI)
+        // Extraer textos (ya validados por JOI)
         const projectData = req.body;
 
-        // 2. Manejo de Imágenes
+        // Manejo de Imágenes
         if (!req.files || !req.files.mainImage) {
             return res.status(400).json({
                 ok: false,
@@ -16,17 +16,16 @@ exports.createProject = async (req, res) => {
             });
         }
 
-        // --- CAMBIO AQUÍ: Subir Imagen Principal ---
-        // Usamos mainImageResult.url porque así lo definiste en el servicio de Cloudinary
+        //  Subir Imagen Principal
+        // Usamos mainImageResult.url porque así lo tengo definido en el servicio de Cloudinary
         const mainImageResult = await uploadImage(req.files.mainImage[0].path, 'projects/main');
 
         projectData.mainImage = {
             public_id: mainImageResult.public_id,
-            url: mainImageResult.url, // ANTES: secure_url (Esto causaba el error de validación)
+            url: mainImageResult.url, 
             alt: projectData.title
         };
 
-        // --- CAMBIO AQUÍ: Subir Galería ---
         if (req.files.gallery && req.files.gallery.length > 0) {
             const galleryPromises = req.files.gallery.map(file =>
                 uploadImage(file.path, 'projects/gallery')
@@ -35,13 +34,12 @@ exports.createProject = async (req, res) => {
 
             projectData.gallery = galleryResults.map(img => ({
                 public_id: img.public_id,
-                url: img.url, // ANTES: secure_url (Cambiado para coincidir con el Schema)
+                url: img.url, 
                 alt: `Gallery image for ${projectData.title}`
             }));
         }
 
-        // 3. Crear en la base de datos
-        // Ahora Mongoose dejará pasar el documento porque los campos 'url' ya tienen datos
+        // Crear en la base de datos
         const newProject = await Project.create(projectData);
 
         res.status(201).json({
@@ -66,22 +64,27 @@ exports.createProject = async (req, res) => {
             type: 'ServerError',
             message: 'Internal Server Error',
         });
+        
     } finally {
-        // Borra todo lo que Multer atrapó en mainImage y gallery de un solo golpe
         if (req.files) await deleteLocalFiles(req.files);
     }
 };
 
 exports.getAllProjects = async (req, res) => {
     try {
-        const { category, stack, featured } = req.query;
+        const { category, stack, featured, search } = req.query;
         const page = Math.max(1, parseInt(req.query.page) || 1);
         const limit = parseInt(req.query.limit) || 12;
-        // calculomatematico para desplazamiento
         const skip = (page - 1) * limit;
 
         // Filtro Dinámico
         let query = { 'status.isVisible': true };
+
+        // BÚSQUEDA POR NOMBRE (inteligente: case-insensitive, búsqueda parcial)
+        if (search && search.trim()) {
+            query.title = { $regex: search.trim(), $options: 'i' };
+        }
+
         if (category) query.category = category;
         if (stack) query.stacks = { $in: [stack.toLowerCase()] };
         if (featured) query['status.isFeatured'] = featured === 'true';
@@ -94,13 +97,10 @@ exports.getAllProjects = async (req, res) => {
             Project.countDocuments(query)
         ]);
 
-        /**
-         * 3. LÓGICA DE METADATOS (Cálculos para el Frontend)
-         * Estos datos ayudan a Angular a saber si debe mostrar el botón "Siguiente" o "Anterior".
-         */
-        const totalPages = Math.ceil(total / limit); // Redondea hacia arriba (ej: 1.1 páginas = 2 páginas)
-        const hasNextPage = page < totalPages;            // ¿Hay una página después de esta?
-        const hasPrevPage = page > 1;                    // ¿Hay una página antes de esta?
+
+        const totalPages = Math.ceil(total / limit); 
+        const hasNextPage = page < totalPages;           
+        const hasPrevPage = page > 1;                    
 
         // si no encuentra ningun project con esos criterios de busquedas
         if (total === 0) {
@@ -121,8 +121,8 @@ exports.getAllProjects = async (req, res) => {
                 limit,
                 totalItems: total,
                 totalPages: totalPages,
-                hasNextPage,  // Booleano para el botón "Next"
-                hasPrevPage   // Booleano para el botón "Prev"
+                hasNextPage,  
+                hasPrevPage   
             }
         });
     } catch (error) {
@@ -141,7 +141,7 @@ exports.updateProject = async (req, res) => {
         const { id } = req.params;
         let updateData = req.body;
 
-        // 1. Verificar si el proyecto existe antes de hacer nada
+        // Verificar si el proyecto existe
         const project = await Project.findById(id);
         if (!project) {
             return res.status(404).json({
@@ -152,7 +152,7 @@ exports.updateProject = async (req, res) => {
             });
         }
 
-        // 2. ACTUALIZAR IMAGEN PRINCIPAL (Main Image)
+        // ACTUALIZAR IMAGEN PRINCIPAL (Main Image)
         if (req.files && req.files.mainImage) {
             // Borramos la vieja de Cloudinary
             if (project.mainImage && project.mainImage.public_id) {
@@ -167,14 +167,14 @@ exports.updateProject = async (req, res) => {
             };
         }
 
-        // 3. ACTUALIZAR GALERÍA (Reemplazo Total)
+        // ACTUALIZAR GALERÍA (Reemplazo Total)
         if (req.files && req.files.gallery && req.files.gallery.length > 0) {
-            // A. Borramos TODA la galería vieja de Cloudinary
+            // Borramos TODA la galería vieja de Cloudinary
             if (project.gallery && project.gallery.length > 0) {
                 const deletePromises = project.gallery.map(img => deleteImage(img.public_id));
                 await Promise.all(deletePromises);
             }
-            // B. Subimos la nueva galería
+            // Subimos la nueva galería
             const galleryPromises = req.files.gallery.map(file =>
                 uploadImage(file.path, 'projects/gallery')
             );
@@ -187,8 +187,7 @@ exports.updateProject = async (req, res) => {
             }));
         }
 
-        // 4. MANEJO DE OBJETOS ANIDADOS (Status y Links)
-        // Como es un PATCH, queremos combinar lo que viene con lo que ya hay
+        // MANEJO DE OBJETOS ANIDADOS (Status y Links)
         if (updateData.status) {
             updateData.status = { ...project.status, ...updateData.status };
         }
@@ -196,7 +195,7 @@ exports.updateProject = async (req, res) => {
             updateData.links = { ...project.links, ...updateData.links };
         }
 
-        // 5. ACTUALIZAR EN BASE DE DATOS
+        // ACTUALIZAR EN BASE DE DATOS
         // runValidators asegura que cumpla el ENUM de categorías y los tipos
         const updatedProject = await Project.findByIdAndUpdate(
             id,
@@ -220,7 +219,6 @@ exports.updateProject = async (req, res) => {
         });
 
     } finally {
-        // NO IMPORTA SI HUBO ERROR O ÉXITO, LIMPÌAMOS
         if (req.file) await deleteLocalFiles(req.file);
     }
 };
@@ -229,7 +227,7 @@ exports.deleteProject = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 1. Buscar el proyecto para obtener los public_id de las imágenes
+        // Buscar el proyecto para obtener los public_id de las imágenes
         const project = await Project.findById(id);
 
         if (!project) {
@@ -241,7 +239,7 @@ exports.deleteProject = async (req, res) => {
             });
         }
 
-        // 2. ELIMINAR IMÁGENES DE CLOUDINARY
+        // ELIMINAR IMÁGENES DE CLOUDINARY
         // Creamos un array para recolectar todas las promesas de borrado
         const deletionPromises = [];
 
@@ -264,7 +262,7 @@ exports.deleteProject = async (req, res) => {
             await Promise.all(deletionPromises);
         }
 
-        // 3. ELIMINAR DE LA BASE DE DATOS
+      
         await Project.findByIdAndDelete(id);
 
         res.status(200).json({
@@ -288,7 +286,6 @@ exports.getBySlugProject = async (req, res) => {
     try {
         const { slug } = req.params;
 
-        // Buscamos un proyecto que coincida con el slug y que esté visible
         const project = await Project.findOne({
             slug: slug.toLowerCase(),
             'status.isVisible': true

@@ -15,17 +15,13 @@ exports.uploadImage = async (filePath, folder) => {
       unique_filename: true,
       overwrite: true,
     });
-    
-    // Opcional: Borrar el archivo de la carpeta temporal de tu server tras subirlo
-    // if (fs.existsSync(filePath)) {
-    //     fs.unlinkSync(filePath);
-    //     console.log('Imagen temporal eliminada del servidor');
-    // }
+
 
     return {
       public_id: result.public_id,
       url: result.secure_url
     };
+
   } catch (error) {
     console.error('Error en Cloudinary Service:', error);
     throw new Error('Error al subir la imagen a la nube');

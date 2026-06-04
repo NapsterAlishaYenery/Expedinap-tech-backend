@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-// 1. IMPORTAMOS TU CONFIGURACIÓN DE MULTER (El validador de imágenes que pusiste al final)
+// IMPORTAMOS CONFIGURACIÓN DE MULTER 
 const upload = require('../middleware/upload.middleware');
 
-// 2. IMPORTAMOS LOS DEMÁS MIDDLEWARES
+// IMPORTAMOS LOS MIDDLEWARES
 const validateGlobalID = require('../middleware/validate-id.middleware');
 const validateProject = require('../middleware/project-validator.middleware');
 
-// 3. IMPOERTAMOS EL CONTROLADOR
+// IMPOERTAMOS EL CONTROLADOR
 const projectController = require('../controllers/project.controller');
 
-// nuevos middlewares 
+// MIDDLEWARES
 const authMiddleware = require('../middleware/auth.middleware'); 
 const writeLimiter = require('../middleware/rateLimiter.middleware'); 
 const isAdminMiddleware = require('../middleware/isAdmin.middleware');
@@ -43,7 +43,6 @@ router.post(
  * RUTAS QUE DEPENDEN DEL ID (Update y Delete)
  */
 router.route('/:id')
-    // Esto se ejecuta para PATCH y para DELETE
     .all(validateGlobalID.id, authMiddleware)
     // HTTP PATCH
     .patch(

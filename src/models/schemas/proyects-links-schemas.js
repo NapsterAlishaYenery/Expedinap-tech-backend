@@ -14,6 +14,6 @@ const LinksSchema = new Schema({
         type: String,
         trim: true,
     }
-}, { _id: false }); // _id: false para que no cree un ID por cada imagen de la galería
+}, { _id: false }); 
 
 module.exports = LinksSchema;

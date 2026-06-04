@@ -19,6 +19,8 @@ const conectarMongoDBAltas = require('./config/db');
 const projectRoutes = require('./routes/project.routes');
 const userRoutes = require('./routes/user.routes');
 const geminiChatRoutes = require('./routes/gemini-chat.routes');
+const emailRoutes = require('./routes/contact.routes');
+const coursesTutorialRutes = require('./routes/course.routes');
 
 
 // Crear el server
@@ -70,6 +72,8 @@ app.get('/keep-alive', (req, res) => {
 app.use('/api/projects', projectRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat-ia', geminiChatRoutes);
+app.use('/api/contact', emailRoutes);
+app.use('/api/video', coursesTutorialRutes);
 
 
 // Configurar Middleware global de errores

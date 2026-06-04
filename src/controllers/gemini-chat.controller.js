@@ -4,8 +4,7 @@ exports.handledChatGeminiIA = async (req, res) => {
     try {
 
         const { message } = req.body;
-        const { history } = req.body; //para el historial
-
+        const { history } = req.body; 
         if (!message) {
             return res.status(400).json({
                 ok: false,

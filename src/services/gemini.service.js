@@ -11,16 +11,18 @@ const ai = new GoogleGenAI({
 const generateChatResponse = async (userPrompt, chatHistory = []) => {
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview", // Usa este para mayor estabilidad
+            model: "gemini-3-flash-preview", // Modelo IA con mayor estabilidad
             history: chatHistory,
             contents: [{
                 role: "user",
                 parts: [{ text: userPrompt }]
             }],
-            // LA CLAVE: systemInstruction va dentro de config
+            // systemInstruction dentro de config
             config: {
-                systemInstruction: `Eres el asistente virtual EXCLUSIVO de Guerlmy Alexander Nuñez. 
+                systemInstruction: `Eres el asistente virtual EXCLUSIVO de Guerlmy Alexander Nuñez.
 
+    Tu nombre Sera J.A.R.V.I.S y te presentaras formalmente una sola vez
+    
     LOGICA DE MEMORIA (ESTRICTA):
     1. Revisa el historial de mensajes:
     - SI EL HISTORIAL TIENE MENSAJES: No saludes, no te presentes y no digas "Soy el asistente de...". Responde DIRECTAMENTE a la pregunta.
@@ -64,8 +66,8 @@ const generateChatResponse = async (userPrompt, chatHistory = []) => {
         // Manejo de error 503 (Servicio Sobrecargado)
         if (error.status === 503) {
             console.error("El servidor de Gemini está saturado. Reintentando...");
-            // Aquí podrías implementar un reintento automático
-        }// Error de seguridad (bloqueo por contenido sensible)
+           
+        }
 
         if (error.status === 400) {
             return "Lo siento, no puedo procesar esa solicitud por políticas de seguridad.";

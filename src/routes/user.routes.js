@@ -25,7 +25,7 @@ router.patch('/update-my-profile', authMiddleware, writeLimiter, upload.single('
  */
 router.route('/:id')
     .all(validateGlobalID.id, authMiddleware, isAdmin)
-    .get(userController.getUserById) // Tú como admin viendo a un usuario
-    .delete(writeLimiter, userController.deleteUserById); // Tú borrando a alguien
+    .get(userController.getUserById) 
+    .delete(writeLimiter, userController.deleteUserById); 
 
 module.exports = router;

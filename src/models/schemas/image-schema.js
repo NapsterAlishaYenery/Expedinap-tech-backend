@@ -18,6 +18,6 @@ const ImageSchema = new Schema({
         trim: true,
         default: 'Project capture ExpediNap Tech'
     }
-}, { _id: false }); // _id: false para que no cree un ID por cada imagen de la galería
+}, { _id: false }); 
 
 module.exports = ImageSchema;

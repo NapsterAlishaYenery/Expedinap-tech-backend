@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 const AddressSchema = require("./schemas/user-address-schema");
-const ImageSchema = require("./schemas/image-schema"); // Reutilizamos el de ayer
+const ImageSchema = require("./schemas/image-schema"); 
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
 const UserSchema = new Schema({
@@ -28,26 +28,23 @@ const UserSchema = new Schema({
         lowercase: true,
         match: [emailRegex, 'Please provide a valid email address']
     },
-    password: { // Cambiado de password_hash a password por simplicidad, pero con select: false
+    password: { 
         type: String,
         required: [true, 'Password is required'],
         select: false
     },
-    // --- MEJORA PRO: Imagen de perfil con lo que ya sabes ---
     avatar: ImageSchema,
     role: {
         type: String,
-        enum: ['admin', 'editor', 'user'], // Añadimos 'editor' por si quieres ayuda en el blog
+        enum: ['admin', 'editor', 'user'], 
         default: 'user'
     },
     active: {
         type: Boolean,
         default: true
     },
+    address: AddressSchema, 
 
-    address: AddressSchema, // Usamos el sub-schema
-
-    // --- MEJORA PRO: Metadata de cuenta ---
     lastLogin: {
         type: Date
     }

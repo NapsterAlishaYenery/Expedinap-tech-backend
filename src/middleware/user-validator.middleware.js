@@ -33,9 +33,7 @@ const joiUserSchema = Joi.object({
 });
 
 const validateUser = {
-    /**
-     * Middleware para Registro (SignUp)
-     */
+    
     signUp: (req, res, next) => {
         const { error } = joiUserSchema.validate(req.body, { abortEarly: false });
 
@@ -45,15 +43,13 @@ const validateUser = {
                 ok: false,
                 data: null,
                 type: 'ValidationError',
-                messages: errors // Plural, porque pueden ser varios
+                messages: errors 
             });
         }
         next();
     },
 
-    /**
-     * Middleware para Login
-     */
+   
     login: (req, res, next) => {
         const schema = Joi.object({
             identifier: Joi.string().required().messages({ 'any.required': 'Email or Username is required' }),
@@ -72,20 +68,13 @@ const validateUser = {
         next();
     },
 
-    /**
-     * Middleware para Update (Perfil de usuario común)
-     * Bloquea campos sensibles como password, role y active.
-     */
     update: (req, res, next) => {
-        // 1. Clonamos el esquema base y hacemos todo opcional con .fork()
         let updateSchema = joiUserSchema.fork(
             Object.keys(joiUserSchema.describe().keys),
             (schema) => schema.optional()
         );
-
-        // 2. Agregamos restricciones de seguridad PRO
+        
         updateSchema = updateSchema.append({
-            // Prohibidos totalmente en este endpoint de "update general"
             _id: Joi.any().forbidden(),
             createdAt: Joi.any().forbidden(),
             updatedAt: Joi.any().forbidden(),
@@ -108,7 +97,7 @@ const validateUser = {
             });
         }
 
-        // 3. Verificar que al menos envíen un campo para actualizar
+       
         if (Object.keys(req.body).length === 0) {
             return res.status(400).json({
                 ok: false,
