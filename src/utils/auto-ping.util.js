@@ -5,7 +5,7 @@ const axios = require('axios');
  * Se auto-llama cada 14 minutos.
  */
 const setupAutoPing = () => {
-  const URL = ''//'https://expedinap-2-0-backend.onrender.com/keep-alive';
+  const URL = 'https://expedinap-tech-backend.onrender.com/keep-alive' //'https://expedinap-2-0-backend.onrender.com/keep-alive';
   const INTERVAL = 14 * 60 * 1000; // 14 minutos
 
   console.log('[Auto-Ping] Sistema de persistencia inicializado.');
